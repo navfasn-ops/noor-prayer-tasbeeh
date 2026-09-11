@@ -31,6 +31,199 @@ class NoorApp extends StatelessWidget {
   }
 }
 
+
+class PrayerPage extends StatelessWidget {
+  const PrayerPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: NoorApp.darkGreen,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 900),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Prayer Times',
+                    style: TextStyle(
+                      color: NoorApp.gold,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Prayer Times & Iqamah',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color(0x33152F29),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: const Color(0x44D4AF37),
+                      ),
+                    ),
+                    child: const Column(
+                      children: [
+                        Icon(
+                          Icons.mosque_outlined,
+                          color: NoorApp.gold,
+                          size: 48,
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Loading Prayer Times...',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'Preparing your daily prayer schedule',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white60,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  const Row(
+                    children: [
+                      Expanded(
+                        child: _PrayerTimeCard(
+                          icon: Icons.nightlight_round,
+                          name: 'Fajr',
+                          time: '--:--',
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: _PrayerTimeCard(
+                          icon: Icons.wb_sunny_outlined,
+                          name: 'Dhuhr',
+                          time: '--:--',
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  const Row(
+                    children: [
+                      Expanded(
+                        child: _PrayerTimeCard(
+                          icon: Icons.wb_twilight,
+                          name: 'Asr',
+                          time: '--:--',
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: _PrayerTimeCard(
+                          icon: Icons.wb_sunny,
+                          name: 'Maghrib',
+                          time: '--:--',
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  const _PrayerTimeCard(
+                    icon: Icons.dark_mode_outlined,
+                    name: 'Isha',
+                    time: '--:--',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PrayerTimeCard extends StatelessWidget {
+  final IconData icon;
+  final String name;
+  final String time;
+
+  const _PrayerTimeCard({
+    required this.icon,
+    required this.name,
+    required this.time,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0x22152F29),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0x3322D4AF),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: NoorApp.gold,
+            size: 28,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  time,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class NoorShell extends StatefulWidget {
   const NoorShell({super.key});
 
@@ -43,11 +236,7 @@ class _NoorShellState extends State<NoorShell> {
 
   final List<Widget> _pages = const [
     NoorHomePage(),
-    SectionPage(
-      icon: Icons.mosque_outlined,
-      title: 'Prayer',
-      subtitle: 'Prayer Times & Iqamah',
-    ),
+    PrayerPage(),
     SectionPage(
       icon: Icons.radio_button_checked,
       title: 'Tasbeeh',
