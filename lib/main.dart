@@ -32,9 +32,27 @@ class NoorApp extends StatelessWidget {
 }
 
 
-class PrayerPage extends StatelessWidget {
+class PrayerPage extends StatefulWidget {
   const PrayerPage({super.key});
+    @override
+  State<PrayerPage> createState() => _PrayerPageState();
+}
+  class _PrayerPageState extends State<PrayerPage> {
+      @override
+ void initState() {
+  super.initState();
+  _loadPrayerTimes();
+}
+    Future<void> _loadPrayerTimes() async {
+    final locationService = LocationService();
+    final position = await locationService.getCurrentPosition();
+    final prayerService = PrayerService();
 
+    final prayerTimes = await prayerService.getPrayerTimes(
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
