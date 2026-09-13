@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'services/location_service.dart';
+import 'services/prayer_service.dart';
 
 void main() {
   runApp(const NoorApp());
@@ -38,6 +40,7 @@ class PrayerPage extends StatefulWidget {
   State<PrayerPage> createState() => _PrayerPageState();
 }
   class _PrayerPageState extends State<PrayerPage> {
+    PrayerTimes? _prayerTimes;
       @override
  void initState() {
   super.initState();
@@ -52,6 +55,11 @@ class PrayerPage extends StatefulWidget {
       latitude: position.latitude,
       longitude: position.longitude,
     );
+    if (!mounted) return;
+
+setState(() {
+  _prayerTimes = prayerTimes;
+});
   }
   @override
   Widget build(BuildContext context) {
@@ -124,13 +132,13 @@ class PrayerPage extends StatefulWidget {
 
                   const SizedBox(height: 20),
 
-                  const Row(
+                  Row(
                     children: [
                       Expanded(
                         child: _PrayerTimeCard(
                           icon: Icons.nightlight_round,
                           name: 'Fajr',
-                          time: '--:--',
+                          time: _prayerTimes?.fajr ?? '--:--',
                         ),
                       ),
                       SizedBox(width: 12),
@@ -138,7 +146,7 @@ class PrayerPage extends StatefulWidget {
                         child: _PrayerTimeCard(
                           icon: Icons.wb_sunny_outlined,
                           name: 'Dhuhr',
-                          time: '--:--',
+                          time: _prayerTimes?.dhuhr ?? '--:--',
                         ),
                       ),
                     ],
@@ -146,13 +154,13 @@ class PrayerPage extends StatefulWidget {
 
                   const SizedBox(height: 12),
 
-                  const Row(
+                  Row(
                     children: [
                       Expanded(
                         child: _PrayerTimeCard(
                           icon: Icons.wb_twilight,
                           name: 'Asr',
-                          time: '--:--',
+                          time: _prayerTimes?.asr ?? '--:--',
                         ),
                       ),
                       SizedBox(width: 12),
@@ -160,7 +168,7 @@ class PrayerPage extends StatefulWidget {
                         child: _PrayerTimeCard(
                           icon: Icons.wb_sunny,
                           name: 'Maghrib',
-                          time: '--:--',
+                          time: _prayerTimes?.maghrib ?? '--:--',
                         ),
                       ),
                     ],
@@ -168,10 +176,10 @@ class PrayerPage extends StatefulWidget {
 
                   const SizedBox(height: 12),
 
-                  const _PrayerTimeCard(
+                  _PrayerTimeCard(
                     icon: Icons.dark_mode_outlined,
                     name: 'Isha',
-                    time: '--:--',
+                    time: _prayerTimes?.isha ?? '--:--',
                   ),
                 ],
               ),
