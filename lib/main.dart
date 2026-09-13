@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/location_service.dart';
 import 'services/prayer_service.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const NoorApp());
@@ -138,7 +139,7 @@ setState(() {
                         child: _PrayerTimeCard(
                           icon: Icons.nightlight_round,
                           name: 'Fajr',
-                          time: _prayerTimes?.fajr ?? '--:--',
+                          time: formatPrayerTime(_prayerTimes?.fajr ?? '--:--'),
                         ),
                       ),
                       SizedBox(width: 12),
@@ -146,7 +147,7 @@ setState(() {
                         child: _PrayerTimeCard(
                           icon: Icons.wb_sunny_outlined,
                           name: 'Dhuhr',
-                          time: _prayerTimes?.dhuhr ?? '--:--',
+                          time: formatPrayerTime(_prayerTimes?.dhuhr ?? '--:--'),
                         ),
                       ),
                     ],
@@ -160,7 +161,7 @@ setState(() {
                         child: _PrayerTimeCard(
                           icon: Icons.wb_twilight,
                           name: 'Asr',
-                          time: _prayerTimes?.asr ?? '--:--',
+                          time: formatPrayerTime(_prayerTimes?.asr ?? '--:--'),
                         ),
                       ),
                       SizedBox(width: 12),
@@ -168,7 +169,7 @@ setState(() {
                         child: _PrayerTimeCard(
                           icon: Icons.wb_sunny,
                           name: 'Maghrib',
-                          time: _prayerTimes?.maghrib ?? '--:--',
+                          time: formatPrayerTime(_prayerTimes?.maghrib ?? '--:--'),
                         ),
                       ),
                     ],
@@ -179,7 +180,7 @@ setState(() {
                   _PrayerTimeCard(
                     icon: Icons.dark_mode_outlined,
                     name: 'Isha',
-                    time: _prayerTimes?.isha ?? '--:--',
+                    time: formatPrayerTime(_prayerTimes?.isha ?? '--:--'),
                   ),
                 ],
               ),
@@ -191,6 +192,14 @@ setState(() {
   }
 }
 
+String formatPrayerTime(String time) {
+  try {
+    final parsedTime = DateFormat('HH:mm').parse(time);
+    return DateFormat('h:mm a').format(parsedTime);
+  } catch (_) {
+    return time;
+  }
+}
 class _PrayerTimeCard extends StatelessWidget {
   final IconData icon;
   final String name;
