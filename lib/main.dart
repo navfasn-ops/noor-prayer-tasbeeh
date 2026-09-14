@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:geocoding/geocoding.dart';
 
 import 'services/location_service.dart';
 import 'services/prayer_service.dart';
@@ -60,6 +61,8 @@ class _PrayerPageState extends State<PrayerPage> {
 
   Timer? _timer;
   DateTime _now = DateTime.now();
+  bool _isLoading = false;
+
 
   @override
   void initState() {
@@ -97,6 +100,7 @@ class _PrayerPageState extends State<PrayerPage> {
   Future<void> _loadPrayerTimes() async {
     try {
       setState(() {
+        _isLoading = true;
         _errorMessage = null;
       });
 
@@ -115,12 +119,14 @@ class _PrayerPageState extends State<PrayerPage> {
 
       setState(() {
         _prayerTimes = prayerTimes;
+        _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
 
       setState(() {
         _errorMessage = e.toString();
+        _isLoading = false;
       });
     }
   }
@@ -272,6 +278,36 @@ class _PrayerPageState extends State<PrayerPage> {
 
       if (status.type == _PrayerStatusType.upcoming) {
         return status;
+      }
+    }
+
+    // All of today's prayers are completed.
+    // The next prayer is tomorrow's Fajr.
+    if (prayers.isNotEmpty) {
+      final fajr = prayers.first;
+      final tomorrow = _now.add(const Duration(days: 1));
+
+      final fajrTime = _parsePrayerTime(fajr.time);
+
+      if (fajrTime != null) {
+        final nextFajr = DateTime(
+          tomorrow.year,
+          tomorrow.month,
+          tomorrow.day,
+          fajrTime.hour,
+          fajrTime.minute,
+        );
+
+        return _PrayerStatus(
+          type: _PrayerStatusType.upcoming,
+          prayer: fajr,
+          adhanTime: nextFajr,
+          iqamahTime: nextFajr.add(
+            Duration(
+              minutes: widget.settingsNotifier.value.delayFor(fajr.name),
+            ),
+          ),
+        );
       }
     }
 
@@ -623,7 +659,32 @@ class _PrayerPageState extends State<PrayerPage> {
 
                   const SizedBox(height: 24),
 
-                  if (_errorMessage != null)
+                  if (_isLoading)
+                    _glassCard(
+                      child: Column(
+                        children: [
+                          const SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: CircularProgressIndicator(
+                              color: NoorApp.gold,
+                              strokeWidth: 2.5,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Loading prayer times...',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (_errorMessage != null)
                     _glassCard(
                       child: Column(
                         children: [
@@ -1424,8 +1485,110 @@ class SectionPage extends StatelessWidget {
 // HOME PAGE
 // ============================================================
 
-class NoorHomePage extends StatelessWidget {
+class NoorHomePage extends StatefulWidget {
   const NoorHomePage({super.key});
+
+  @override
+  State<NoorHomePage> createState() => _NoorHomePageState();
+}
+
+class _NoorHomePageState extends State<NoorHomePage> {
+  PrayerTimes? _prayerTimes;
+  String? _locationText;
+  String? _errorMessage;
+  bool _isLoading = true;
+  DateTime _now = DateTime.now();
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHomeData();
+
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) {
+        if (!mounted) return;
+        setState(() {
+          _now = DateTime.now();
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadHomeData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      final locationService = LocationService();
+      final position = await locationService.getCurrentPosition();
+
+      final prayerService = PrayerService();
+      final prayerTimes = await prayerService.getPrayerTimes(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      String locationName = 'Unknown location';
+
+      try {
+        final geocoding = Geocoding();
+
+        final placemarks =
+            await geocoding.placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+
+        if (placemarks.isNotEmpty) {
+          final place = placemarks.first;
+
+          final city = place.locality?.trim();
+          final state = place.administrativeArea?.trim();
+          final country = place.country?.trim();
+
+          final parts = <String>[
+            if (city != null && city.isNotEmpty) city,
+            if (state != null &&
+                state.isNotEmpty &&
+                state != city)
+              state,
+            if (country != null && country.isNotEmpty) country,
+          ];
+
+          if (parts.isNotEmpty) {
+            locationName = parts.join(', ');
+          }
+        }
+      } catch (_) {
+        locationName = 'Location unavailable';
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _prayerTimes = prayerTimes;
+        _locationText = locationName;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1469,9 +1632,15 @@ class NoorHomePage extends StatelessWidget {
                     children: [
                       _buildHeader(),
                       const SizedBox(height: 24),
-                      _buildDateCard(),
-                      const SizedBox(height: 18),
-                      _buildNextPrayerCard(),
+                      if (_isLoading)
+                        _buildHomeLoadingCard()
+                      else if (_errorMessage != null)
+                        _buildHomeErrorCard()
+                      else ...[
+                        _buildDateCard(),
+                        const SizedBox(height: 18),
+                        _buildNextPrayerCard(),
+                      ],
                       const SizedBox(height: 28),
                       const Text(
                         'Quick Access',
@@ -1509,44 +1678,62 @@ class NoorHomePage extends StatelessWidget {
 
   Widget _buildHeader() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          width: 48,
-          height: 48,
+          width: 52,
+          height: 52,
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(17),
             color: const Color(0x331B4D42),
             border: Border.all(
-              color: const Color(0x44D4AF37),
+              color: const Color(0x55D4AF37),
+              width: 1.2,
             ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1AD4AF37),
+                blurRadius: 14,
+                spreadRadius: 1,
+              ),
+            ],
           ),
           child: const Icon(
             Icons.nightlight_round,
             color: NoorApp.gold,
-            size: 25,
+            size: 27,
           ),
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 15),
         const Expanded(
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Assalamu Alaikum',
+                'السلام عليكم',
                 style: TextStyle(
                   color: Color(0xFFD9D9D9),
-                  fontSize: 13,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: 2),
+              SizedBox(height: 3),
               Text(
                 'Noor Prayer & Tasbeeh',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 21,
+                  fontSize: 22,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              SizedBox(height: 3),
+              Text(
+                'May Allah accept your good deeds',
+                style: TextStyle(
+                  color: Color(0x99D4AF37),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -1556,19 +1743,99 @@ class NoorHomePage extends StatelessWidget {
     );
   }
 
+  Widget _buildHomeLoadingCard() {
+    return _glassCard(
+      child: const Padding(
+        padding: EdgeInsets.symmetric(vertical: 18),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: NoorApp.gold,
+                strokeWidth: 2.5,
+              ),
+            ),
+            SizedBox(width: 14),
+            Text(
+              'Loading prayer times...',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHomeErrorCard() {
+    return _glassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Unable to load prayer times',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _errorMessage ?? 'Please try again.',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xAAD9D9D9),
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton.icon(
+            onPressed: _loadHomeData,
+            icon: const Icon(
+              Icons.refresh,
+              color: NoorApp.gold,
+            ),
+            label: const Text(
+              'Retry',
+              style: TextStyle(
+                color: NoorApp.gold,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDateCard() {
     return _glassCard(
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             DateFormat(
               'EEEE, d MMMM yyyy',
-            ).format(DateTime.now()),
+            ).format(_now),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 17,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            DateFormat('hh:mm:ss a').format(_now),
+            style: const TextStyle(
+              color: NoorApp.gold,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1581,19 +1848,21 @@ class NoorHomePage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          const Row(
+          Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.location_on_outlined,
                 color: NoorApp.gold,
                 size: 18,
               ),
-              SizedBox(width: 7),
-              Text(
-                'Current Location',
-                style: TextStyle(
-                  color: Color(0xBBD9D9D9),
-                  fontSize: 13,
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  _locationText ?? 'Loading location...',
+                  style: const TextStyle(
+                    color: Color(0xBBD9D9D9),
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -1603,7 +1872,59 @@ class NoorHomePage extends StatelessWidget {
     );
   }
 
+  Map<String, String>? _getNextPrayer() {
+    final prayerTimes = _prayerTimes;
+    if (prayerTimes == null) return null;
+
+    final prayers = <Map<String, String>>[
+      {'name': 'Fajr', 'time': prayerTimes.fajr},
+      {'name': 'Dhuhr', 'time': prayerTimes.dhuhr},
+      {'name': 'Asr', 'time': prayerTimes.asr},
+      {'name': 'Maghrib', 'time': prayerTimes.maghrib},
+      {'name': 'Isha', 'time': prayerTimes.isha},
+    ];
+
+    for (final prayer in prayers) {
+      final parts = prayer['time']!.split(':');
+      if (parts.length < 2) continue;
+
+      final hour = int.tryParse(parts[0]);
+      final minute = int.tryParse(parts[1]);
+
+      if (hour == null || minute == null) continue;
+
+      final prayerTime = DateTime(
+        _now.year,
+        _now.month,
+        _now.day,
+        hour,
+        minute,
+      );
+
+      if (_now.isBefore(prayerTime)) {
+        final remaining = prayerTime.difference(_now);
+
+        return {
+          'name': prayer['name']!,
+          'time': prayer['time']!,
+          'countdown':
+              '${remaining.inHours.toString().padLeft(2, '0')}:'
+              '${remaining.inMinutes.remainder(60).toString().padLeft(2, '0')}:'
+              '${remaining.inSeconds.remainder(60).toString().padLeft(2, '0')}',
+        };
+      }
+    }
+
+    return {
+      'name': 'Fajr',
+      'time': prayerTimes.fajr,
+      'countdown': 'Tomorrow',
+    };
+  }
+
   Widget _buildNextPrayerCard() {
+    final nextPrayer = _getNextPrayer();
+
     return _glassCard(
       child: Row(
         children: [
@@ -1624,33 +1945,43 @@ class NoorHomePage extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 15),
-          const Expanded(
+          Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Next Prayer',
                   style: TextStyle(
                     color: Color(0xAAD9D9D9),
                     fontSize: 12,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Prayer',
-                  style: TextStyle(
+                  nextPrayer?['name'] ?? 'Loading...',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 21,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                if (nextPrayer != null &&
+                    nextPrayer['countdown'] != 'Tomorrow') ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'in ${nextPrayer['countdown']}',
+                    style: const TextStyle(
+                      color: Color(0xAAD9D9D9),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
-          const Text(
-            '--:--',
-            style: TextStyle(
+          Text(
+            nextPrayer?['time'] ?? '--:--',
+            style: const TextStyle(
               color: NoorApp.gold,
               fontSize: 22,
               fontWeight: FontWeight.w700,
