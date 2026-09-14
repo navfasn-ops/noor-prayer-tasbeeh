@@ -1240,7 +1240,9 @@ class _NoorShellState extends State<NoorShell> {
     super.initState();
 
     _pages = [
-      const NoorHomePage(),
+      NoorHomePage(
+        onNavigate: _onDestinationSelected,
+      ),
       PrayerPage(
         settingsNotifier: _settingsNotifier,
       ),
@@ -1486,7 +1488,12 @@ class SectionPage extends StatelessWidget {
 // ============================================================
 
 class NoorHomePage extends StatefulWidget {
-  const NoorHomePage({super.key});
+  final ValueChanged<int> onNavigate;
+
+  const NoorHomePage({
+    super.key,
+    required this.onNavigate,
+  });
 
   @override
   State<NoorHomePage> createState() => _NoorHomePageState();
