@@ -2010,11 +2010,13 @@ class _NoorHomePageState extends State<NoorHomePage> {
         icon: Icons.radio_button_checked,
         title: 'Tasbeeh',
         subtitle: 'Dhikr & Counter',
+        navigationIndex: 2,
       ),
       const _QuickItem(
         icon: Icons.menu_book_outlined,
         title: 'Quran',
         subtitle: 'Read Quran',
+        navigationIndex: 3,
       ),
       const _QuickItem(
         icon: Icons.explore_outlined,
@@ -2025,6 +2027,7 @@ class _NoorHomePageState extends State<NoorHomePage> {
         icon: Icons.auto_stories_outlined,
         title: 'Duas',
         subtitle: 'Duas & Adhkar',
+        navigationIndex: 4,
       ),
       const _QuickItem(
         icon: Icons.calendar_month_outlined,
@@ -2035,6 +2038,7 @@ class _NoorHomePageState extends State<NoorHomePage> {
         icon: Icons.access_time_outlined,
         title: 'Prayer',
         subtitle: 'Prayer Times',
+        navigationIndex: 1,
       ),
     ];
 
@@ -2054,6 +2058,11 @@ class _NoorHomePageState extends State<NoorHomePage> {
       itemBuilder: (context, index) {
         return _QuickCard(
           item: items[index],
+          onTap: items[index].navigationIndex == null
+              ? null
+              : () => widget.onNavigate(
+                  items[index].navigationIndex!,
+                ),
         );
       },
     );
@@ -2089,25 +2098,31 @@ class _QuickItem {
   final IconData icon;
   final String title;
   final String subtitle;
+  final int? navigationIndex;
 
   const _QuickItem({
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.navigationIndex,
   });
 }
 
 class _QuickCard extends StatelessWidget {
   final _QuickItem item;
+  final VoidCallback? onTap;
 
   const _QuickCard({
     required this.item,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(15),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: const Color(0x331B4D42),
         borderRadius:
@@ -2176,6 +2191,7 @@ class _QuickCard extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }
