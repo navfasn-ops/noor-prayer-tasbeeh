@@ -1932,11 +1932,13 @@ class _NoorHomePageState extends State<NoorHomePage> {
   Widget _buildNextPrayerCard() {
     final nextPrayer = _getNextPrayer();
 
-    return _glassCard(
-      child: Row(
-        children: [
-          Container(
-            width: 52,
+    return GestureDetector(
+      onTap: () => widget.onNavigate(1),
+      child: _glassCard(
+        child: Row(
+          children: [
+            Container(
+              width: 52,
             height: 52,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
@@ -1993,8 +1995,9 @@ class _NoorHomePageState extends State<NoorHomePage> {
               fontSize: 22,
               fontWeight: FontWeight.w700,
             ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
