@@ -7,6 +7,7 @@ import 'package:geocoding/geocoding.dart';
 import 'services/location_service.dart';
 import 'services/prayer_service.dart';
 import 'services/iqamah_service.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const NoorApp());
@@ -34,7 +35,7 @@ class NoorApp extends StatelessWidget {
         ),
         fontFamily: 'Arial',
       ),
-      home: const NoorShell(),
+      home: const SplashScreen(),
     );
   }
 }
