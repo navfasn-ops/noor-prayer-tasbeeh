@@ -2039,8 +2039,9 @@ class _NoorHomePageState extends State<NoorHomePage> {
                   Text(
                     'in ${nextPrayer['countdown']}',
                     style: const TextStyle(
-                      color: Color(0xAAD9D9D9),
+                      color: NoorApp.gold,
                       fontSize: 12,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
