@@ -24,6 +24,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   PrayerTimes? _prayerTimes;
   String? _locationText;
+  String? _splashError;
 
   @override
   void initState() {
@@ -71,20 +72,36 @@ class _SplashScreenState extends State<SplashScreen>
     _loadPrayerData();
   }
 
+  void _retryPrayerData() {
+    if (!mounted) return;
+
+    setState(() {
+      _splashError = null;
+    });
+
+    _loadPrayerData();
+  }
+
   Future<void> _loadPrayerData() async {
     try {
+      debugPrint('[SPLASH] Starting prayer data load');
       final locationService = LocationService();
+      debugPrint('[SPLASH] Requesting current location');
       final position = await locationService.getCurrentPosition();
+      debugPrint('[SPLASH] Location received: ${position.latitude}, ${position.longitude}');
 
+      debugPrint('[SPLASH] Starting prayer API request');
       final prayerService = PrayerService();
       final prayerTimes = await prayerService.getPrayerTimes(
         latitude: position.latitude,
         longitude: position.longitude,
       );
 
+      debugPrint('[SPLASH] Prayer times received');
       String locationName = 'Unknown location';
 
       try {
+        debugPrint('[SPLASH] Starting reverse geocoding');
         final geocoder = geocoding.Geocoding();
         final placemarks =
             await geocoder.placemarkFromCoordinates(
@@ -116,6 +133,7 @@ class _SplashScreenState extends State<SplashScreen>
         locationName = 'Location unavailable';
       }
 
+      debugPrint('[SPLASH] Prayer data ready, opening Home');
       if (!mounted) return;
 
       setState(() {
@@ -124,9 +142,15 @@ class _SplashScreenState extends State<SplashScreen>
       });
 
       _openHome();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[SPLASH] ERROR: $e');
+      debugPrint('[SPLASH] STACK: $stackTrace');
+
       if (!mounted) return;
 
+      setState(() {
+        _splashError = e.toString();
+      });
     }
   }
 
@@ -259,14 +283,41 @@ class _SplashScreenState extends State<SplashScreen>
 
                           const SizedBox(height: 24),
 
-                          AnimatedBuilder(
-                            animation: _loadingController,
-                            builder: (_, child) {
-                              return SubtleLoading(
-                                progress: _loadingController.value,
-                              );
-                            },
-                          ),
+                          if (_splashError == null)
+                            AnimatedBuilder(
+                              animation: _loadingController,
+                              builder: (_, child) {
+                                return SubtleLoading(
+                                  progress: _loadingController.value,
+                                );
+                              },
+                            )
+                          else
+                            Column(
+                              children: [
+                                Text(
+                                  _splashError!,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Color(0xFFEDE9DE),
+                                    fontSize: 13,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                TextButton(
+                                  onPressed: _retryPrayerData,
+                                  child: const Text(
+                                    'RETRY',
+                                    style: TextStyle(
+                                      color: NoorApp.gold,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),

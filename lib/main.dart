@@ -1385,7 +1385,7 @@ class _NoorShellState extends State<NoorShell> {
             ),
           ),
           content: Text(
-            'A new version of Noor is ready.\\n\\n'
+            'A new version of Noor is ready.\n\n'
             'Version ${update.version} is available.',
             style: const TextStyle(
               color: Color(0xFFEDE9DE),
