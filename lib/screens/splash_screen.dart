@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 
 import '../widgets/subtle_loading.dart';
 import '../main.dart';
+import '../services/location_service.dart';
+import '../services/prayer_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,6 +21,9 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _noorFade;
   late final Animation<double> _subtitleFade;
   late final Animation<double> _detailsFade;
+
+  PrayerTimes? _prayerTimes;
+  String? _locationText;
 
   @override
   void initState() {
@@ -62,10 +68,66 @@ class _SplashScreenState extends State<SplashScreen>
 
     _contentController.forward();
 
-    Future<void>.delayed(
-      const Duration(milliseconds: 2500),
-      _openHome,
-    );
+    _loadPrayerData();
+  }
+
+  Future<void> _loadPrayerData() async {
+    try {
+      final locationService = LocationService();
+      final position = await locationService.getCurrentPosition();
+
+      final prayerService = PrayerService();
+      final prayerTimes = await prayerService.getPrayerTimes(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      String locationName = 'Unknown location';
+
+      try {
+        final geocoder = geocoding.Geocoding();
+        final placemarks =
+            await geocoder.placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+
+        if (placemarks.isNotEmpty) {
+          final place = placemarks.first;
+
+          final city = place.locality?.trim();
+          final state = place.administrativeArea?.trim();
+          final country = place.country?.trim();
+
+          final parts = <String>[
+            if (city != null && city.isNotEmpty) city,
+            if (state != null &&
+                state.isNotEmpty &&
+                state != city)
+              state,
+            if (country != null && country.isNotEmpty) country,
+          ];
+
+          if (parts.isNotEmpty) {
+            locationName = parts.join(', ');
+          }
+        }
+      } catch (_) {
+        locationName = 'Location unavailable';
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _prayerTimes = prayerTimes;
+        _locationText = locationName;
+      });
+
+      _openHome();
+    } catch (e) {
+      if (!mounted) return;
+
+    }
   }
 
   void _openHome() {
@@ -73,7 +135,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
-        pageBuilder: (_, animation, secondaryAnimation) => const NoorShell(),
+        pageBuilder: (_, animation, secondaryAnimation) => NoorShell(
+          prayerTimes: _prayerTimes!,
+          locationText: _locationText ?? 'Location unavailable',
+        ),
         transitionDuration: const Duration(milliseconds: 500),
         transitionsBuilder: (_, animation, secondaryAnimation, child) {
           return FadeTransition(

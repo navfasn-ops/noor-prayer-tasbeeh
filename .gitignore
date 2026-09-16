@@ -43,3 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local development backups
+android/splash-backup/
+lib/*.backup
+lib/*.before-splash
+lib/main.dart.before-splash-home-flow
+lib/main.dart.home-backup
+
+# Local development backups
+backups/

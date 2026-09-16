@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:geocoding/geocoding.dart';
 
 import 'services/location_service.dart';
 import 'services/prayer_service.dart';
 import 'services/iqamah_service.dart';
+import 'services/update_service.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
@@ -1189,13 +1190,21 @@ class _SettingsPageState extends State<SettingsPage> {
 // ============================================================
 
 class NoorShell extends StatefulWidget {
-  const NoorShell({super.key});
+  const NoorShell({
+    super.key,
+    required this.prayerTimes,
+    required this.locationText,
+  });
+
+  final PrayerTimes prayerTimes;
+  final String locationText;
 
   @override
   State<NoorShell> createState() => _NoorShellState();
 }
 
 class _NoorShellState extends State<NoorShell> {
+  static const MethodChannel _updateChannel = MethodChannel('noor.app/update');
   int _selectedIndex = 0;
 
   final ValueNotifier<IqamahSettings> _settingsNotifier =
@@ -1243,6 +1252,8 @@ class _NoorShellState extends State<NoorShell> {
     _pages = [
       NoorHomePage(
         onNavigate: _onDestinationSelected,
+        prayerTimes: widget.prayerTimes,
+        locationText: widget.locationText,
       ),
       PrayerPage(
         settingsNotifier: _settingsNotifier,
@@ -1266,6 +1277,196 @@ class _NoorShellState extends State<NoorShell> {
         settingsNotifier: _settingsNotifier,
       ),
     ];
+
+    _checkForAppUpdate();
+  }
+
+  Future<void> _checkForAppUpdate() async {
+    try {
+      final updateService = UpdateService();
+      final update = await updateService.checkForUpdate();
+
+      if (!mounted || update == null) return;
+
+      final shouldUpdate = await _showUpdateDialog(update);
+
+      if (!shouldUpdate || !mounted) return;
+
+      _showDownloadDialog();
+
+      try {
+        final apkPath = await updateService.downloadApk(update);
+
+        if (!mounted) return;
+
+        Navigator.of(context, rootNavigator: true).pop();
+
+        await _updateChannel.invokeMethod<bool>(
+          'installApk',
+          <String, dynamic>{
+            'apkPath': apkPath,
+          },
+        );
+      } catch (_) {
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+
+          await showDialog<void>(
+            context: context,
+            builder: (dialogContext) {
+              return AlertDialog(
+                backgroundColor: NoorApp.cardGreen,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  side: const BorderSide(
+                    color: NoorApp.gold,
+                    width: 0.7,
+                  ),
+                ),
+                title: const Text(
+                  'Update Failed',
+                  style: TextStyle(
+                    color: NoorApp.gold,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                content: const Text(
+                  'The update could not be installed. Please try again later.',
+                  style: TextStyle(
+                    color: Color(0xFFEDE9DE),
+                    height: 1.5,
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                    },
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(
+                        color: NoorApp.gold,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      }
+    } catch (_) {
+      // Update checking must never interrupt normal app usage.
+    }
+  }
+
+  Future<bool> _showUpdateDialog(AppUpdateInfo update) async {
+    if (!mounted) return false;
+
+    final shouldUpdate = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: NoorApp.cardGreen,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: const BorderSide(
+              color: NoorApp.gold,
+              width: 0.7,
+            ),
+          ),
+          title: const Text(
+            'Update Available',
+            style: TextStyle(
+              color: NoorApp.gold,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Text(
+            'A new version of Noor is ready.\\n\\n'
+            'Version ${update.version} is available.',
+            style: const TextStyle(
+              color: Color(0xFFEDE9DE),
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text(
+                'LATER',
+                style: TextStyle(
+                  color: Color(0xFFBDB7A8),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: NoorApp.gold,
+                foregroundColor: NoorApp.darkGreen,
+              ),
+              child: const Text(
+                'UPDATE NOW',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    return shouldUpdate ?? false;
+  }
+
+  void _showDownloadDialog() {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: NoorApp.cardGreen,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: const BorderSide(
+              color: NoorApp.gold,
+              width: 0.7,
+            ),
+          ),
+          content: const Row(
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: NoorApp.gold,
+                ),
+              ),
+              SizedBox(width: 20),
+              Expanded(
+                child: Text(
+                  'Downloading update...',
+                  style: TextStyle(
+                    color: Color(0xFFEDE9DE),
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -1490,10 +1691,14 @@ class SectionPage extends StatelessWidget {
 
 class NoorHomePage extends StatefulWidget {
   final ValueChanged<int> onNavigate;
+  final PrayerTimes prayerTimes;
+  final String locationText;
 
   const NoorHomePage({
     super.key,
     required this.onNavigate,
+    required this.prayerTimes,
+    required this.locationText,
   });
 
   @override
@@ -1503,15 +1708,14 @@ class NoorHomePage extends StatefulWidget {
 class _NoorHomePageState extends State<NoorHomePage> {
   PrayerTimes? _prayerTimes;
   String? _locationText;
-  String? _errorMessage;
-  bool _isLoading = true;
   DateTime _now = DateTime.now();
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _loadHomeData();
+    _prayerTimes = widget.prayerTimes;
+    _locationText = widget.locationText;
 
     _timer = Timer.periodic(
       const Duration(seconds: 1),
@@ -1528,74 +1732,6 @@ class _NoorHomePageState extends State<NoorHomePage> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
-  }
-
-  Future<void> _loadHomeData() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
-      final locationService = LocationService();
-      final position = await locationService.getCurrentPosition();
-
-      final prayerService = PrayerService();
-      final prayerTimes = await prayerService.getPrayerTimes(
-        latitude: position.latitude,
-        longitude: position.longitude,
-      );
-
-      String locationName = 'Unknown location';
-
-      try {
-        final geocoding = Geocoding();
-
-        final placemarks =
-            await geocoding.placemarkFromCoordinates(
-          position.latitude,
-          position.longitude,
-        );
-
-        if (placemarks.isNotEmpty) {
-          final place = placemarks.first;
-
-          final city = place.locality?.trim();
-          final state = place.administrativeArea?.trim();
-          final country = place.country?.trim();
-
-          final parts = <String>[
-            if (city != null && city.isNotEmpty) city,
-            if (state != null &&
-                state.isNotEmpty &&
-                state != city)
-              state,
-            if (country != null && country.isNotEmpty) country,
-          ];
-
-          if (parts.isNotEmpty) {
-            locationName = parts.join(', ');
-          }
-        }
-      } catch (_) {
-        locationName = 'Location unavailable';
-      }
-
-      if (!mounted) return;
-
-      setState(() {
-        _prayerTimes = prayerTimes;
-        _locationText = locationName;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -1640,15 +1776,9 @@ class _NoorHomePageState extends State<NoorHomePage> {
                     children: [
                       _buildHeader(),
                       const SizedBox(height: 24),
-                      if (_isLoading)
-                        _buildHomeLoadingCard()
-                      else if (_errorMessage != null)
-                        _buildHomeErrorCard()
-                      else ...[
-                        _buildDateCard(),
-                        const SizedBox(height: 18),
-                        _buildNextPrayerCard(),
-                      ],
+                      _buildDateCard(),
+                      const SizedBox(height: 18),
+                      _buildNextPrayerCard(),
                       const SizedBox(height: 28),
                       const Text(
                         'Quick Access',
@@ -1748,78 +1878,6 @@ class _NoorHomePageState extends State<NoorHomePage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHomeLoadingCard() {
-    return _glassCard(
-      child: const Padding(
-        padding: EdgeInsets.symmetric(vertical: 18),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                color: NoorApp.gold,
-                strokeWidth: 2.5,
-              ),
-            ),
-            SizedBox(width: 14),
-            Text(
-              'Loading prayer times...',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHomeErrorCard() {
-    return _glassCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Unable to load prayer times',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            _errorMessage ?? 'Please try again.',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xAAD9D9D9),
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextButton.icon(
-            onPressed: _loadHomeData,
-            icon: const Icon(
-              Icons.refresh,
-              color: NoorApp.gold,
-            ),
-            label: const Text(
-              'Retry',
-              style: TextStyle(
-                color: NoorApp.gold,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
