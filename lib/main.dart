@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1258,11 +1259,7 @@ class _NoorShellState extends State<NoorShell> {
       PrayerPage(
         settingsNotifier: _settingsNotifier,
       ),
-      const SectionPage(
-        icon: Icons.radio_button_checked,
-        title: 'Tasbeeh',
-        subtitle: 'Personal & After Prayer Dhikr',
-      ),
+      const TasbeehPage(),
       const SectionPage(
         icon: Icons.menu_book_outlined,
         title: 'Quran',
@@ -1680,6 +1677,319 @@ class SectionPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// TASBEEH PAGE
+// ============================================================
+
+class TasbeehPage extends StatefulWidget {
+  const TasbeehPage({
+    super.key,
+  });
+
+  @override
+  State<TasbeehPage> createState() => _TasbeehPageState();
+}
+
+class _TasbeehPageState extends State<TasbeehPage> {
+  int _selectedTab = 0;
+  int _currentDhikrIndex = 0;
+  int _currentCount = 0;
+
+  final List<int> _dhikrTargets = [33, 33, 33, 11, 11];
+
+  final List<String> _dhikrNames = [
+    'SubhanAllah',
+    'Alhamdulillah',
+    'Allahu Akbar',
+    'La ilaha illallah',
+    'Salawat',
+  ];
+
+  final List<String> _dhikrArabic = [
+    'سبحان الله',
+    'الحمد لله',
+    'الله اكبر',
+    'لا اله الا الله',
+    'صلى الله على محمد صلى الله عليه وسلم',
+  ];
+
+  void _incrementDhikr() {
+    setState(() {
+      final target = _dhikrTargets[_currentDhikrIndex];
+
+      if (_currentCount < target - 1) {
+        _currentCount++;
+        return;
+      }
+
+      if (_currentDhikrIndex < _dhikrTargets.length - 1) {
+        _currentDhikrIndex++;
+        _currentCount = 0;
+      } else {
+        _currentCount = target;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 10),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).maybePop();
+                  },
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: const Color(0x221B4D42),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0x44D4AF37),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back,
+                      color: NoorApp.gold,
+                      size: 22,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                const Text(
+                  'Tasbeeh',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0x221B4D42),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0x33D4AF37),
+                ),
+              ),
+              padding: const EdgeInsets.all(4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedTab = 0;
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _selectedTab == 0
+                              ? const Color(0x33D4AF37)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'After Prayer',
+                          style: TextStyle(
+                            color: _selectedTab == 0
+                                ? NoorApp.gold
+                                : const Color(0x99FFFFFF),
+                            fontSize: 13,
+                            fontWeight: _selectedTab == 0
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedTab = 1;
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _selectedTab == 1
+                              ? const Color(0x33D4AF37)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'My Dhikr',
+                          style: TextStyle(
+                            color: _selectedTab == 1
+                                ? NoorApp.gold
+                                : const Color(0x99FFFFFF),
+                            fontSize: 13,
+                            fontWeight: _selectedTab == 1
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 24),
+              decoration: BoxDecoration(
+                color: const Color(0x331B4D42),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0x33D4AF37),
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x33000000),
+                    blurRadius: 20,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    _dhikrNames[_currentDhikrIndex],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _dhikrArabic[_currentDhikrIndex],
+                    textDirection: ui.TextDirection.rtl,
+                    style: const TextStyle(
+                      color: NoorApp.gold,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  GestureDetector(
+                    onTap: _incrementDhikr,
+                    child: SizedBox(
+                      width: 220,
+                      height: 220,
+                      child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: 220,
+                          height: 220,
+                          child: CircularProgressIndicator(
+                            value: _currentCount /
+                                _dhikrTargets[_currentDhikrIndex],
+                            strokeWidth: 9,
+                            backgroundColor: const Color(0x331B4D42),
+                            valueColor:
+                                const AlwaysStoppedAnimation<Color>(
+                              NoorApp.gold,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 172,
+                          height: 172,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF0B241F),
+                            border: Border.all(
+                              color: const Color(0x44D4AF37),
+                              width: 1,
+                            ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x44000000),
+                                blurRadius: 18,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '$_currentCount / ${_dhikrTargets[_currentDhikrIndex]}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Container(
+                                width: 58,
+                                height: 58,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: NoorApp.gold,
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x55D4AF37),
+                                      blurRadius: 14,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.add,
+                                  color: NoorApp.darkGreen,
+                                  size: 30,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          const Expanded(
+            child: SizedBox(),
+          ),
+        ],
       ),
     );
   }
