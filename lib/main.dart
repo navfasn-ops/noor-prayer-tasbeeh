@@ -1902,9 +1902,10 @@ class _TasbeehPageState extends State<TasbeehPage> {
                   const SizedBox(height: 22),
                   GestureDetector(
                     onTap: _incrementDhikr,
-                    child: SizedBox(
-                      width: 220,
-                      height: 220,
+                    child: ClipOval(
+                      child: SizedBox(
+                        width: 220,
+                        height: 220,
                       child: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -1977,6 +1978,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
                         ),
                       ],
                     ),
+                      ),
                     ),
                   ),
                 ],
