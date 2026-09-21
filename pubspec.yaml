@@ -67,6 +67,8 @@ flutter:
 
   assets:
     - assets/images/noor_splash_background.png
+    - assets/images/noor_smart_ring.png
+    - assets/images/noor_smart_ring_banner.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

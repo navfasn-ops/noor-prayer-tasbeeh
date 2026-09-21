@@ -1259,7 +1259,7 @@ class _NoorShellState extends State<NoorShell> {
       PrayerPage(
         settingsNotifier: _settingsNotifier,
       ),
-      const TasbeehPage(),
+      TasbeehPage(onBackToHome: () => _onDestinationSelected(0)),
       const SectionPage(
         icon: Icons.menu_book_outlined,
         title: 'Quran',
@@ -1682,6 +1682,404 @@ class SectionPage extends StatelessWidget {
   }
 }
 
+
+// ============================================================
+// SMART RING EXPLORE PAGE
+// ============================================================
+
+class SmartRingExplorePage extends StatelessWidget {
+  const SmartRingExplorePage({
+    super.key,
+  });
+
+  static const List<Map<String, dynamic>> _features = [
+    {
+      'icon': Icons.radio_button_checked,
+      'title': 'Dhikr\nCounting',
+    },
+    {
+      'icon': Icons.directions_run,
+      'title': 'Steps &\nActivity',
+    },
+    {
+      'icon': Icons.favorite,
+      'title': 'Heart Rate',
+    },
+    {
+      'icon': Icons.water_drop_outlined,
+      'title': 'SpO₂',
+    },
+    {
+      'icon': Icons.nightlight_round,
+      'title': 'Sleep\nTracking',
+    },
+    {
+      'icon': Icons.mosque_outlined,
+      'title': 'Prayer\nReminders',
+    },
+    {
+      'icon': Icons.search,
+      'title': 'Find Ring',
+    },
+    {
+      'icon': Icons.battery_full,
+      'title': 'Battery\nLife',
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: NoorApp.darkGreen,
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'Smart Ring',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 48),
+                  ],
+                ),
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color(0x331B4D42),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(
+                      color: const Color(0x44D4AF37),
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x33000000),
+                        blurRadius: 24,
+                        offset: Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
+                        child: SizedBox(
+                          height: 245,
+                          width: double.infinity,
+                          child: Image.asset(
+                            'assets/images/noor_smart_ring.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(22, 4, 22, 22),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Explore',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.w700,
+                                height: 1.05,
+                              ),
+                            ),
+                            Text(
+                              'Noor Smart Ring',
+                              style: TextStyle(
+                                color: NoorApp.gold,
+                                fontSize: 30,
+                                fontWeight: FontWeight.w700,
+                                height: 1.08,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'A Small Ring for a Greater Life',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 7),
+                            Text(
+                              'Stay connected with your Deen, your health '
+                              'and your daily life.',
+                              style: TextStyle(
+                                color: Color(0xD9FFFFFF),
+                                fontSize: 14,
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
+              sliver: SliverGrid(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final feature = _features[index];
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0x331B4D42),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: const Color(0x553D9A62),
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x22000000),
+                            blurRadius: 12,
+                            offset: Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            feature['icon'] as IconData,
+                            color: NoorApp.gold,
+                            size: 30,
+                          ),
+                          const SizedBox(height: 9),
+                          Text(
+                            feature['title'] as String,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              height: 1.25,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  childCount: _features.length,
+                ),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.35,
+                ),
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
+                child: Container(
+                  padding: const EdgeInsets.all(17),
+                  decoration: BoxDecoration(
+                    color: const Color(0x331B4D42),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0x66D4AF37),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: const Color(0x221B4D42),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: const Color(0x55D4AF37),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.memory,
+                          color: NoorApp.gold,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Compatible with',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              'Many Smart Rings',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 3),
+                            Text(
+                              'Features may vary by device.',
+                              style: TextStyle(
+                                color: Color(0xB3FFFFFF),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 62,
+                  child: ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.camera_alt_outlined,
+                      size: 26,
+                    ),
+                    label: const Text(
+                      'BUY NOW  ›',
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: NoorApp.gold,
+                      foregroundColor: NoorApp.darkGreen,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(18, 0, 18, 18),
+                child: Center(
+                  child: Text(
+                    'Chat with us on Instagram',
+                    style: TextStyle(
+                      color: Color(0xD9FFFFFF),
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 4, 24, 30),
+                child: Row(
+                  children: [
+                    _buildTrustItem(
+                      Icons.verified_user_outlined,
+                      'Trusted\nQuality',
+                    ),
+                    _buildTrustItem(
+                      Icons.local_shipping_outlined,
+                      'Worldwide\nShipping',
+                    ),
+                    _buildTrustItem(
+                      Icons.headset_mic_outlined,
+                      'Support',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _buildTrustItem(
+    IconData icon,
+    String label,
+  ) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: NoorApp.gold,
+            size: 25,
+          ),
+          const SizedBox(height: 7),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: NoorApp.gold,
+              fontSize: 11,
+              height: 1.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ============================================================
 // TASBEEH PAGE
 // ============================================================
@@ -1689,7 +2087,10 @@ class SectionPage extends StatelessWidget {
 class TasbeehPage extends StatefulWidget {
   const TasbeehPage({
     super.key,
+    required this.onBackToHome,
   });
+
+  final VoidCallback onBackToHome;
 
   @override
   State<TasbeehPage> createState() => _TasbeehPageState();
@@ -1881,6 +2282,120 @@ class _TasbeehPageState extends State<TasbeehPage> {
         targetController.dispose();
       });
     }
+  }
+
+  Future<void> _showEditTargetDialog() async {
+    final dhikr = _myDhikr[_selectedMyDhikrIndex];
+    final controller = TextEditingController(
+      text: (dhikr['target'] as int).toString(),
+    );
+    final formKey = GlobalKey<FormState>();
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF0B241F),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: const BorderSide(
+              color: Color(0x44D4AF37),
+            ),
+          ),
+          title: const Text(
+            'Edit Target',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Target Count',
+                labelStyle: TextStyle(
+                  color: Color(0xCCFFFFFF),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: NoorApp.gold,
+                  ),
+                ),
+              ),
+              validator: (value) {
+                final target = int.tryParse(value?.trim() ?? '');
+                if (target == null || target <= 0) {
+                  return 'Enter a valid target';
+                }
+                return null;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text(
+                'CANCEL',
+                style: TextStyle(color: Color(0xCCFFFFFF)),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.of(dialogContext).pop(true);
+                }
+              },
+              child: const Text(
+                'SAVE',
+                style: TextStyle(
+                  color: NoorApp.gold,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (saved == true) {
+      final newTarget = int.parse(controller.text.trim());
+
+      setState(() {
+        dhikr['target'] = newTarget;
+        final currentCount = dhikr['count'] as int;
+        if (currentCount > newTarget) {
+          dhikr['count'] = newTarget;
+        }
+      });
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.dispose();
+    });
+  }
+
+  Widget _buildSmartRingCard() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+      child: SizedBox(
+        width: double.infinity,
+        height: 210,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Image.asset(
+            'assets/images/noor_smart_ring_banner.png',
+            width: double.infinity,
+            height: 210,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildMyDhikrContent() {
@@ -2159,12 +2674,37 @@ class _TasbeehPageState extends State<TasbeehPage> {
               ),
             ),
             const SizedBox(height: 14),
-            OutlinedButton.icon(
-              onPressed: () {
-                setState(() {
-                  dhikr['count'] = 0;
-                });
-              },
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _showEditTargetDialog,
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    size: 18,
+                  ),
+                  label: const Text('EDIT TARGET'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: NoorApp.gold,
+                    side: const BorderSide(
+                      color: Color(0x66D4AF37),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      dhikr['count'] = 0;
+                    });
+                  },
               icon: const Icon(
                 Icons.restart_alt,
                 size: 18,
@@ -2183,6 +2723,8 @@ class _TasbeehPageState extends State<TasbeehPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
+                ),
+              ],
             ),
             const SizedBox(height: 18),
             Container(
@@ -2241,9 +2783,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).maybePop();
-                  },
+                  onTap: widget.onBackToHome,
                   child: Container(
                     width: 42,
                     height: 42,
@@ -2521,9 +3061,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
 
           const SizedBox(height: 18),
 
-          const Expanded(
-            child: SizedBox(),
-          ),
+          _buildSmartRingCard(),
         ],
       ),
     );
