@@ -2384,14 +2384,36 @@ class _TasbeehPageState extends State<TasbeehPage> {
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
       child: SizedBox(
         width: double.infinity,
-        height: 210,
+        height: 310,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
-          child: Image.asset(
-            'assets/images/noor_smart_ring_banner.png',
-            width: double.infinity,
-            height: 210,
-            fit: BoxFit.cover,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                'assets/images/noor_smart_ring_banner.png',
+                fit: BoxFit.cover,
+              ),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: FractionallySizedBox(
+                  widthFactor: 0.28,
+                  heightFactor: 0.30,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SmartRingExplorePage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
