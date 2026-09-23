@@ -41,6 +41,7 @@ dependencies:
   geocoding: ^5.0.0
   package_info_plus: ^10.2.1
   path_provider: ^2.1.6
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +70,7 @@ flutter:
     - assets/images/noor_splash_background.png
     - assets/images/noor_smart_ring.png
     - assets/images/noor_smart_ring_banner.png
+    - assets/images/a_tall_vertical_promotional_ui_poster_app_screen.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
